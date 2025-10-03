@@ -1,0 +1,39 @@
+{
+  "id": "6f9e2519-f18b-4a4f-8b3d-31222cc33486",
+  "name": "Sarah's wedding",
+  "owner_email": "avoidaccess@msn.com",
+  "flow_type": "sequential",
+  "created_at": "2025-10-03T21:34:56.574Z",
+  "status": "active",
+  "steps": [
+    {
+      "id": "0c9eed43-843f-48f7-9f88-1ef755566a50",
+      "name": "Vendor1",
+      "vendor_email": "avoidaccess@msn.com",
+      "status": "pending",
+      "required_previous": null,
+      "time_limit": "24 hours",
+      "description": "do this then that",
+      "created_at": "2025-10-03T21:34:56.574Z"
+    },
+    {
+      "id": "01b35b29-4bb3-484a-abf0-bf2c9c444bea",
+      "name": "Vendor2",
+      "vendor_email": "avoidaccess@gmail.com",
+      "status": "pending",
+      "time_limit": null,
+      "description": "do this then that",
+      "created_at": "2025-10-03T21:34:56.574Z"
+    },
+    {
+      "id": "3aecac20-bffc-4859-9108-5962cd2d2073",
+      "name": "vendor3",
+      "vendor_email": "avoidaccess@gmail.com",
+      "status": "pending",
+      "time_limit": null,
+      "description": "do this then that",
+      "created_at": "2025-10-03T21:34:56.575Z"
+    }
+  ],
+  "commits": []
+}
