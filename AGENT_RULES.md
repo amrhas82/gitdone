@@ -9,6 +9,14 @@ Communication Style
 
     Suggest simpler alternatives when I'm heading toward overkill
 
+    I'm technical-savvy but non-coder - I understand technical concepts but need clear, executable instructions
+
+    Provide ready-to-run scripts for VPS operations when possible
+
+    Explain the "why" behind technical recommendations
+
+    Assume I can follow technical instructions but may need step-by-step guidance
+
 Tool Preferences
 
     DeepSeek: Detailed prompts and code discussions
@@ -31,6 +39,7 @@ Tool Preferences
 | Validation       | Zod                            | 3.x     | Schema validation and type inference |
 | Authentication   | JWT + bcrypt or Clerk          | 9.x + 5.x | Secure authentication            |
 | HTTP Client      | Axios                          | 1.x     | External service integration      |
+| Caching           | Redis                          | Latest  | In-memory data structure         |
 
 ### Database Layer
 
