@@ -39,7 +39,7 @@ Tool Preferences
 | Validation       | Zod                            | 3.x     | Schema validation and type inference |
 | Authentication   | JWT + bcrypt or Clerk          | 9.x + 5.x | Secure authentication            |
 | HTTP Client      | Axios                          | 1.x     | External service integration      |
-| Caching           | Redis                          | Latest  | In-memory data structure         |
+| Caching           | Redis                          | Latest  | In-memory data structure store   |
 
 ### Database Layer
 
@@ -58,6 +58,7 @@ Tool Preferences
 | Analytics        | Umami Analytics                | Privacy-focused analytics        |
 | Email            | MSMTP + Resend                 | Transactional emails             |
 | Reverse Proxy    | Nginx                          | Load balancing and SSL          |
+| SSL              | Let's Encrypt                  | Free SSL certificates            |
 | Version Control   | GitHub                         | Source code management           |
 
 ### For Complex Projects
@@ -68,6 +69,7 @@ Tool Preferences
 | Orchestration      | Docker + Docker Compose        | Container management             |
 | CI/CD              | GitHub Actions                 | Automated deployment             |
 | Monitoring         | PostHog                        | Product analytics                |
+
 🚀 Development Workflow
 Environments
 
