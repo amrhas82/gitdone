@@ -4,10 +4,11 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
-    const response = await fetch(`${BACKEND_URL}/api/complete/${params.token}`, {
+    const resolvedParams = await params;
+    const response = await fetch(`${BACKEND_URL}/api/complete/${resolvedParams.token}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -28,12 +29,13 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { token: string } }
+  { params }: { params: Promise<{ token: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     const formData = await request.formData();
     
-    const response = await fetch(`${BACKEND_URL}/api/complete/${params.token}`, {
+    const response = await fetch(`${BACKEND_URL}/api/complete/${resolvedParams.token}`, {
       method: 'POST',
       body: formData,
     });

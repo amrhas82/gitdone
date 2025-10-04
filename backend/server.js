@@ -10,6 +10,7 @@ const eventsRouter = require('./routes/events');
 const magicRouter = require('./routes/magic');
 const completeRouter = require('./routes/complete');
 const viewRouter = require('./routes/view');
+const manageRouter = require('./routes/manage');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api/events', eventsRouter);
 app.use('/api/magic', magicRouter);
 app.use('/api/complete', completeRouter);
 app.use('/api/view', viewRouter);
+app.use('/api/manage', manageRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -1,7 +1,8 @@
 'use client';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { CheckCircle, Clock, Mail, Calendar, Users, BarChart3, RefreshCw } from 'lucide-react';
+import { CheckCircle, Clock, Mail, Calendar, Users, BarChart3, RefreshCw, Edit3 } from 'lucide-react';
+// import { formatTimeLimit, getTimeLimitStatus } from '../../utils/timeFormat';
 
 interface Event {
   id: string;
@@ -35,18 +36,39 @@ interface Event {
 
 export default function EventPage() {
   const params = useParams();
-  const [event, setEvent] = useState<Event | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [event, setEvent] = useState<Event | null>({
+    id: params.id,
+    name: "Sarah's wedding",
+    owner_email: "avoidaccess@msn.com",
+    status: "completed",
+    flow_type: "sequential",
+    created_at: "2025-10-03T21:34:56.574Z",
+    progress: 0,
+    completed_steps: 0,
+    total_steps: 0,
+    steps: [],
+    commits: []
+  });
+  const [loading, setLoading] = useState(false);
   const [sendingReminder, setSendingReminder] = useState<string | null>(null);
+  const [sendingManagementLink, setSendingManagementLink] = useState(false);
 
   useEffect(() => {
-    fetchEvent();
+    if (params.id) {
+      fetchEvent();
+    }
   }, [params.id]);
 
   const fetchEvent = async () => {
     try {
+      console.log('Fetching event with ID:', params.id);
       const response = await fetch(`/api/events?id=${params.id}`);
+      console.log('Response status:', response.status);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const eventData = await response.json();
+      console.log('Event data received:', eventData);
       setEvent(eventData);
     } catch (error) {
       console.error('Error fetching event:', error);
@@ -78,6 +100,43 @@ export default function EventPage() {
       alert('Error sending reminder');
     } finally {
       setSendingReminder(null);
+    }
+  };
+
+  const handleEditEvent = async () => {
+    if (!event) return;
+    
+    // Prompt for email to verify ownership
+    const email = prompt(`Enter your email to edit "${event.name}":`, event.owner_email);
+    
+    if (!email) return;
+    
+    if (email !== event.owner_email) {
+      alert('Email does not match event owner. Only the event owner can edit.');
+      return;
+    }
+    
+    setSendingManagementLink(true);
+    try {
+      const response = await fetch('/api/manage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event_id: event.id,
+          owner_email: email
+        })
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        alert('Management link sent to your email! Check your inbox to edit the event.');
+      } else {
+        alert('Error sending management link: ' + result.error);
+      }
+    } catch (error) {
+      alert('Error sending management link');
+    } finally {
+      setSendingManagementLink(false);
     }
   };
 
@@ -136,13 +195,24 @@ export default function EventPage() {
                 </span>
                 <span className="flex items-center">
                   <Users className="mr-2 h-4 w-4" />
-                  {event.flow_type === 'sequential' ? 'Sequential' : 'Non-Sequential'} Flow
+                  {event.flow_type === 'sequential' ? 'Sequential' : 
+                   event.flow_type === 'non_sequential' ? 'Non-Sequential' : 'Hybrid'} Flow
                 </span>
               </div>
             </div>
-            <span className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(event.status)}`}>
-              {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-            </span>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleEditEvent}
+                disabled={sendingManagementLink}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 flex items-center text-sm"
+              >
+                <Edit3 className="mr-2 h-4 w-4" />
+                {sendingManagementLink ? 'Sending...' : 'Edit Event'}
+              </button>
+              <span className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(event.status)}`}>
+                {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
+              </span>
+            </div>
           </div>
 
           {/* Progress Bar */}
@@ -150,16 +220,16 @@ export default function EventPage() {
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-lg font-semibold text-gray-900">Progress</h3>
               <span className="text-sm text-gray-600">
-                {event.completed_steps} of {event.total_steps} steps completed
+                {event.completed_steps || 0} of {event.total_steps || 0} steps completed
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
               <div 
                 className="bg-blue-600 h-3 rounded-full transition-all duration-300"
-                style={{ width: `${event.progress}%` }}
+                style={{ width: `${event.progress || 0}%` }}
               ></div>
             </div>
-            <p className="text-sm text-gray-600 mt-2">{event.progress}% complete</p>
+            <p className="text-sm text-gray-600 mt-2">{event.progress || 0}% complete</p>
           </div>
 
           {/* Quick Stats */}
@@ -169,7 +239,7 @@ export default function EventPage() {
                 <BarChart3 className="h-8 w-8 text-blue-600 mr-3" />
                 <div>
                   <p className="text-sm text-blue-600 font-medium">Total Steps</p>
-                  <p className="text-2xl font-bold text-blue-900">{event.total_steps}</p>
+                  <p className="text-2xl font-bold text-blue-900">{event.total_steps || 0}</p>
                 </div>
               </div>
             </div>
@@ -178,7 +248,7 @@ export default function EventPage() {
                 <CheckCircle className="h-8 w-8 text-green-600 mr-3" />
                 <div>
                   <p className="text-sm text-green-600 font-medium">Completed</p>
-                  <p className="text-2xl font-bold text-green-900">{event.completed_steps}</p>
+                  <p className="text-2xl font-bold text-green-900">{event.completed_steps || 0}</p>
                 </div>
               </div>
             </div>
@@ -187,7 +257,7 @@ export default function EventPage() {
                 <Clock className="h-8 w-8 text-yellow-600 mr-3" />
                 <div>
                   <p className="text-sm text-yellow-600 font-medium">Pending</p>
-                  <p className="text-2xl font-bold text-yellow-900">{event.total_steps - event.completed_steps}</p>
+                  <p className="text-2xl font-bold text-yellow-900">{(event.total_steps || 0) - (event.completed_steps || 0)}</p>
                 </div>
               </div>
             </div>
@@ -229,7 +299,10 @@ export default function EventPage() {
                     {step.time_limit && (
                       <p className="flex items-center">
                         <Clock className="mr-2 h-4 w-4" />
-                        Time limit: {step.time_limit}
+                        <span className="text-sm text-gray-600">Time limit:</span>
+                        <span className="ml-2 text-sm font-medium text-blue-600">
+                          {step.time_limit}
+                        </span>
                       </p>
                     )}
                     {step.completed_at && (

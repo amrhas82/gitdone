@@ -4,18 +4,22 @@
   "owner_email": "test@example.com",
   "flow_type": "sequential",
   "created_at": "2025-10-03T21:16:40.533Z",
-  "status": "active",
+  "status": "completed",
   "steps": [
     {
       "id": "15ea0a07-55b0-4d2b-82af-fcac10bf077c",
       "name": "Test Step",
       "vendor_email": "vendor@example.com",
-      "status": "pending",
+      "status": "completed",
       "required_previous": null,
       "time_limit": null,
       "description": "Test description",
-      "created_at": "2025-10-03T21:16:40.534Z"
+      "created_at": "2025-10-03T21:16:40.534Z",
+      "completed_at": "2025-10-04T18:15:06.347Z",
+      "completion_comments": "Test completion",
+      "files": []
     }
   ],
-  "commits": []
+  "commits": [],
+  "completed_at": "2025-10-04T18:15:06.347Z"
 }

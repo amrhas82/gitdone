@@ -7,10 +7,40 @@ const path = require('path');
 const sharp = require('sharp');
 const { v4: uuidv4 } = require('uuid');
 const GitManager = require('../utils/gitManager');
+const CompletionEmailService = require('../utils/completionEmail');
+const MagicLinkService = require('../utils/magicLinkService');
+const TimeoutHandler = require('../utils/timeoutHandler');
 
 const EVENTS_DIR = path.join(__dirname, '../../data/events');
 const UPLOADS_DIR = path.join(__dirname, '../../data/uploads');
 const TOKENS_FILE = path.join(__dirname, '../../data/magic_tokens.json');
+
+// Trigger next step in sequential flow
+async function triggerNextStep(event, eventId) {
+  try {
+    // Find the next pending step in sequence
+    const completedSteps = event.steps.filter(step => step.status === 'completed');
+    const nextStep = event.steps.find(step => 
+      step.status === 'pending' && 
+      step.sequence === completedSteps.length + 1
+    );
+    
+    if (nextStep) {
+      console.log(`Triggering next step: ${nextStep.name} for vendor: ${nextStep.vendor_email}`);
+      
+      // Use the magic link service
+      const magicLinkService = new MagicLinkService();
+      await magicLinkService.sendMagicLink(eventId, nextStep.id, nextStep.vendor_email);
+      
+      console.log(`✅ Magic link sent for next step: ${nextStep.name}`);
+    } else {
+      console.log('No next step to trigger');
+    }
+  } catch (error) {
+    console.error('Error triggering next step:', error);
+    throw error;
+  }
+}
 
 // Configure multer for file uploads
 const storage = multer.memoryStorage();
@@ -225,6 +255,10 @@ router.post('/:token', upload.array('files', 10), async (req, res) => {
       });
     }
     
+    // Clear timeout for this step since it's being completed
+    const timeoutHandler = new TimeoutHandler();
+    timeoutHandler.clearStepTimeout(decoded.step_id);
+    
     // Update step status
     step.status = 'completed';
     step.completed_at = new Date().toISOString();
@@ -278,6 +312,28 @@ router.post('/:token', upload.array('files', 10), async (req, res) => {
     } catch (gitError) {
       console.error('Git integration failed:', gitError);
       // Don't fail the request if git fails
+    }
+    
+    // Trigger next step if this is sequential flow
+    if (event.flow_type === 'sequential' && !allStepsCompleted) {
+      try {
+        await triggerNextStep(event, decoded.event_id);
+      } catch (triggerError) {
+        console.error('Failed to trigger next step:', triggerError);
+        // Don't fail the request if trigger fails
+      }
+    }
+    
+    // Send completion email if all steps are completed
+    if (allStepsCompleted) {
+      try {
+        const completionEmailService = new CompletionEmailService();
+        await completionEmailService.sendEventCompletionEmail(event, gitCommitHash);
+        console.log('✅ Event completion email sent to organizer');
+      } catch (emailError) {
+        console.error('Failed to send completion email:', emailError);
+        // Don't fail the request if email fails
+      }
     }
     
     res.json({

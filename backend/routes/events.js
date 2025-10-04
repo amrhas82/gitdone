@@ -3,6 +3,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs').promises;
 const path = require('path');
+const EventCreationEmailService = require('../utils/eventCreationEmail');
 
 const EVENTS_DIR = path.join(__dirname, '../../data/events');
 
@@ -12,6 +13,27 @@ async function ensureEventsDir() {
     await fs.access(EVENTS_DIR);
   } catch {
     await fs.mkdir(EVENTS_DIR, { recursive: true });
+  }
+}
+
+// Calculate required previous step based on flow type
+function calculateRequiredPrevious(flowType, steps, currentIndex) {
+  if (flowType === 'sequential') {
+    return currentIndex > 0 ? steps[currentIndex - 1].id : null;
+  } else if (flowType === 'hybrid') {
+    const currentStep = steps[currentIndex];
+    const currentSequence = currentStep.sequence || (currentIndex + 1);
+    
+    // Find the previous step with a lower sequence number
+    const previousStep = steps
+      .slice(0, currentIndex)
+      .reverse()
+      .find(step => (step.sequence || (steps.indexOf(step) + 1)) < currentSequence);
+    
+    return previousStep ? previousStep.id : null;
+  } else {
+    // non_sequential - no dependencies
+    return null;
   }
 }
 
@@ -41,9 +63,10 @@ router.post('/', async (req, res) => {
         name: step.name,
         vendor_email: step.vendor_email,
         status: 'pending',
-        required_previous: flow_type === 'sequential' && index > 0 ? steps[index - 1].id : null,
+        required_previous: calculateRequiredPrevious(flow_type, steps, index),
         time_limit: step.time_limit || null,
         description: step.description || '',
+        sequence: step.sequence || (index + 1),
         created_at: new Date().toISOString()
       })),
       commits: []
@@ -53,6 +76,16 @@ router.post('/', async (req, res) => {
       path.join(EVENTS_DIR, `${eventId}.json`),
       JSON.stringify(event, null, 2)
     );
+    
+    // Send event creation email to owner
+    try {
+      const eventCreationEmailService = new EventCreationEmailService();
+      await eventCreationEmailService.sendEventCreationEmail(event);
+      console.log('✅ Event creation email sent to organizer');
+    } catch (emailError) {
+      console.error('Failed to send event creation email:', emailError);
+      // Don't fail the request if email fails
+    }
     
     res.json({ success: true, eventId, event });
   } catch (error) {

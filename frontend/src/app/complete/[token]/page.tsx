@@ -2,6 +2,7 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Upload, FileText, Camera, CheckCircle, AlertCircle, Clock } from 'lucide-react';
+// import { formatTimeLimit, getTimeLimitStatus } from '../../utils/timeFormat';
 
 interface StepInfo {
   event_name: string;
@@ -153,7 +154,9 @@ export default function CompletePage() {
                 <div className="flex items-center">
                   <Clock className="mr-2 h-4 w-4 text-yellow-600" />
                   <span className="text-sm font-medium text-gray-600">Time Limit:</span>
-                  <span className="text-sm text-yellow-600 ml-2">{stepInfo.time_limit}</span>
+                  <span className="text-sm font-medium ml-2 text-blue-600">
+                    {stepInfo.time_limit}
+                  </span>
                 </div>
               )}
               {stepInfo.description && (

@@ -1,25 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
 const fs = require('fs').promises;
 const path = require('path');
+const EmailService = require('../utils/emailService');
+const MagicLinkService = require('../utils/magicLinkService');
 
 const EVENTS_DIR = path.join(__dirname, '../../data/events');
 const TOKENS_FILE = path.join(__dirname, '../../data/magic_tokens.json');
 
-// Email transporter
-let transporter;
+// Email service
+let emailService;
 try {
-  transporter = nodemailer.createTransporter({
-    service: 'gmail',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    }
+  emailService = new EmailService();
+  emailService.testConnection().then(() => {
+    console.log('✅ MSMTP email service initialized successfully');
+  }).catch((error) => {
+    console.warn('⚠️ MSMTP email service not configured:', error.message);
+    console.warn('Please configure ~/.msmtprc with your email credentials');
   });
 } catch (error) {
-  console.warn('Email configuration not set up. Set SMTP_USER and SMTP_PASS environment variables.');
+  console.warn('Email service initialization failed:', error.message);
 }
 
 // Ensure tokens file exists
@@ -56,85 +57,11 @@ router.post('/send', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: event_id, step_id, vendor_email' });
     }
     
-    // Read event to validate
-    const eventPath = path.join(EVENTS_DIR, `${event_id}.json`);
-    const eventData = await fs.readFile(eventPath, 'utf8');
-    const event = JSON.parse(eventData);
+    // Use the magic link service
+    const magicLinkService = new MagicLinkService();
+    const result = await magicLinkService.sendMagicLink(event_id, step_id, vendor_email);
     
-    const step = event.steps.find(s => s.id === step_id);
-    if (!step) {
-      return res.status(404).json({ error: 'Step not found' });
-    }
-    
-    if (step.vendor_email !== vendor_email) {
-      return res.status(403).json({ error: 'Vendor email does not match step assignment' });
-    }
-    
-    // Generate magic token
-    const token = jwt.sign(
-      {
-        event_id,
-        step_id,
-        vendor_email,
-        purpose: 'step_completion'
-      },
-      process.env.JWT_SECRET || 'fallback-secret-change-in-production',
-      { expiresIn: step.time_limit || '30 days' }
-    );
-    
-    const magicLink = `${process.env.BASE_URL || 'http://localhost:3000'}/complete/${token}`;
-    
-    // Store token for tracking
-    await ensureTokensFile();
-    const tokensData = await loadTokens();
-    tokensData.tokens[token] = {
-      event_id,
-      step_id,
-      vendor_email,
-      created_at: new Date().toISOString(),
-      expires_at: step.time_limit ? new Date(Date.now() + parseTimeLimit(step.time_limit)).toISOString() : null,
-      used: false
-    };
-    await saveTokens(tokensData);
-    
-    // Send email if transporter is configured
-    if (transporter) {
-      try {
-        await transporter.sendMail({
-          from: process.env.SMTP_USER,
-          to: vendor_email,
-          subject: `Action Required: ${step.name} for ${event.name}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #333;">You have a task to complete</h2>
-              <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <p><strong>Event:</strong> ${event.name}</p>
-                <p><strong>Task:</strong> ${step.name}</p>
-                <p><strong>Description:</strong> ${step.description || 'No description provided'}</p>
-                ${step.time_limit ? `<p><strong>Time Limit:</strong> ${step.time_limit}</p>` : ''}
-              </div>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${magicLink}" style="background: #0070f3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; font-weight: bold;">
-                  Complete This Step
-                </a>
-              </div>
-              <p style="color: #666; font-size: 14px;">
-                This link is unique to you and will expire in ${step.time_limit || '30 days'}.
-              </p>
-            </div>
-          `
-        });
-      } catch (emailError) {
-        console.error('Email sending failed:', emailError);
-        // Don't fail the request if email fails
-      }
-    }
-    
-    res.json({ 
-      success: true, 
-      message: 'Magic link sent',
-      magic_link: magicLink // For testing purposes
-    });
+    res.json(result);
   } catch (error) {
     console.error('Error sending magic link:', error);
     res.status(500).json({ error: error.message });

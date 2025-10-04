@@ -11,7 +11,37 @@ A web application for multi-vendor coordination with cryptographic proof of work
 - npm or yarn
 - Git
 
-### Installation
+### 🎯 Super Quick Start (Recommended)
+
+**One command to rule them all:**
+```bash
+git clone <your-repo>
+cd gitdone
+./quick-start.sh
+```
+
+That's it! 🎉 Your app will be running at http://localhost:3000
+
+### 🎮 Interactive Development (Menu-driven)
+
+**For more control and options:**
+```bash
+git clone <your-repo>
+cd gitdone
+./dev.sh
+```
+
+This gives you a menu with options to:
+- 🚀 Start/Stop servers
+- 📊 Check status
+- 📋 View logs
+- 🧪 Test application
+- 📦 Install dependencies
+- ⚙️ Setup environment
+
+📚 **See [DEVELOPMENT.md](DEVELOPMENT.md) for complete development guide**
+
+### 🔧 Manual Setup (Traditional)
 
 1. **Clone and setup**
 ```bash
