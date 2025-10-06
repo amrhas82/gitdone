@@ -24,6 +24,7 @@ Tool Preferences
     Replit: Heavy UI development
 
     Claude: Bug fixing, simplifying, and refactoring
+    
 ## 🛠️ Tech Stack Preferences
 
 ### Core Development Stack
@@ -40,6 +41,9 @@ Tool Preferences
 | Authentication   | JWT + bcrypt or Clerk          | 9.x + 5.x | Secure authentication            |
 | HTTP Client      | Axios                          | 1.x     | External service integration      |
 | Caching           | Redis                          | Latest  | In-memory data structure store   |
+| Server State     | TanStack Query (React Query)   | Latest  | Server state management in React |
+| Language         | Python                         | Latest  | Versatile programming language    |
+| Language         | JavaScript                     | Latest  | Core web development language     |
 
 ### Database Layer
 
@@ -69,6 +73,26 @@ Tool Preferences
 | Orchestration      | Docker + Docker Compose        | Container management             |
 | CI/CD              | GitHub Actions                 | Automated deployment             |
 | Monitoring         | PostHog                        | Product analytics                |
+
+### Development Tools
+
+| Component        | Technology                     | Purpose                          |
+|------------------|--------------------------------|----------------------------------|
+| Text Editor      | Nvim                           | Highly customizable text editor   |
+| Terminal Multiplexer | tmux                       | Terminal session manager          |
+| IDE              | PyCharm Community Edition      | Python development environment    |
+| Terminal Emulator | ghostty                       | Terminal emulator with enhanced features |
+| OS               | Linux Ubuntu                   | Development environment           |
+
+### Testing and Utilities
+
+| Component        | Technology                     | Purpose                          |
+|------------------|--------------------------------|----------------------------------|
+| API Client       | Postman                        | API testing and documentation    |
+| Testing Framework | Jest                          | JavaScript testing framework      |
+| Browser Automation | Playwright                    | Automated browser testing         |
+| Environment Variables | dotenv                     | Manage environment variables      |
+| UI Components    | Radix UI primitives            | Building accessible UI components |
 
 🚀 Development Workflow
 Environments
