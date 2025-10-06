@@ -83,6 +83,7 @@ Tool Preferences
 | IDE              | PyCharm Community Edition      | Python development environment    |
 | Terminal Emulator | ghostty                       | Terminal emulator with enhanced features |
 | OS               | Linux Ubuntu                   | Development environment           |
+| Code Editor      | Ampcode                        | Collaborative code editing        |
 
 ### Testing and Utilities
 
